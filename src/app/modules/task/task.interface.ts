@@ -1,5 +1,3 @@
-// task.interface.ts
-
 export type TaskCategory =
   | 'Arts and Craft'
   | 'Nature'
@@ -19,6 +17,11 @@ export interface ITask {
   title: string;
   category: TaskCategory;
   status: TaskStatus;
-  endDate: Date;
+
+  // New fields for media
+  images?: string[]; // array of Cloudinary image URLs
+  videos?: string[]; // array of Cloudinary video URLs
+  files?: string[];  // array of Cloudinary file URLs or any storage URL
+
   [key: string]: any; // optional extension
 }

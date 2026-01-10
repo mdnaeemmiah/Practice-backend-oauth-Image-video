@@ -1,82 +1,136 @@
 import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import catchAsync from '../../../utils/catchAsync';
-import sendResponse from '../../../utils/sendResponse';
 import { taskService } from './task.service';
+import { ITask } from './task.interface';
+import { sendFileToCloudinary } from '../../../utils/sendFileToCloudinary';
 
-// Create a new task
-const createTask = catchAsync(async (req: Request, res: Response) => {
-  const validatedData = req.body;
+const createTask = async (req: Request, res: Response) => {
+  try {
+    const { title, category, status, endDate } = req.body;
 
-  const newTask = await taskService.createTask(validatedData);
+    console.log('📝 Request Body:', req.body);
+    console.log('📁 Request Files:', req.files);
+    console.log('🔍 Raw values:', { title, category, status, endDate });
 
-  sendResponse(res, {
-    statusCode: StatusCodes.CREATED,
-    success: true,
-    message: 'Task created successfully!',
-    data: newTask,
-  });
-});
+    // Validate and trim inputs first
+    const trimmedTitle = title?.trim();
+    const trimmedCategory = category?.trim();
+    const trimmedStatus = status?.trim();
 
-// Get all tasks
-const getAllTasks = catchAsync(async (_req: Request, res: Response) => {
-  const tasks = await taskService.getAllTasks();
+    if (!trimmedTitle || !trimmedCategory || !trimmedStatus || !endDate) {
+      console.error('❌ Missing fields:', {
+        title: trimmedTitle,
+        category: trimmedCategory,
+        status: trimmedStatus,
+        endDate: endDate,
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields (title, category, status, endDate)',
+        received: {
+          title: !!trimmedTitle,
+          category: !!trimmedCategory,
+          status: !!trimmedStatus,
+          endDate: !!endDate,
+        },
+      });
+    }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Tasks retrieved successfully',
-    data: tasks,
-  });
-});
+    // Parse date - handle various formats
+    const trimmedEndDate = endDate.trim();
+    console.log('📅 Parsing date:', trimmedEndDate);
 
-// Get single task by ID
-const getSingleTask = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+    const parsedDate = new Date(trimmedEndDate);
+    console.log(
+      '📅 Parsed date:',
+      parsedDate,
+      'Valid:',
+      !isNaN(parsedDate.getTime())
+    );
 
-  const task = await taskService.getSingleTask(id);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid date format. Received: "${trimmedEndDate}". Expected ISO format like: 2026-01-20T18:00:00.000Z`,
+      });
+    }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Task retrieved successfully',
-    data: task,
-  });
-});
+    const images: string[] = [];
+    const videos: string[] = [];
+    const filesArr: string[] = [];
 
-// Update task
-const updateTask = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const payload = req.body;
+    // Process uploaded files
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-  const updatedTask = await taskService.updateTask(id, payload);
+    // Upload images to Cloudinary (check both singular and plural field names)
+    if (files && (files.images || files.image)) {
+      const imageFiles = files.images || files.image || [];
+      console.log('🖼️ Uploading images to Cloudinary...');
+      for (const file of imageFiles) {
+        console.log(`Uploading image: ${file.filename}`);
+        const result: any = await sendFileToCloudinary(
+          file.filename,
+          file.path
+        );
+        console.log(`✅ Image uploaded: ${result.secure_url}`);
+        images.push(result.secure_url);
+      }
+    }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Task updated successfully',
-    data: updatedTask,
-  });
-});
+    // Upload videos to Cloudinary (check both singular and plural field names)
+    if (files && (files.videos || files.video)) {
+      const videoFiles = files.videos || files.video || [];
+      console.log('🎥 Uploading videos to Cloudinary...');
+      for (const file of videoFiles) {
+        console.log(`Uploading video: ${file.filename}`);
+        const result: any = await sendFileToCloudinary(
+          file.filename,
+          file.path
+        );
+        console.log(`✅ Video uploaded: ${result.secure_url}`);
+        videos.push(result.secure_url);
+      }
+    }
 
-// Delete task
-const deleteTask = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+    // Upload files to Cloudinary (check both singular and plural field names)
+    if (files && (files.files || files.file)) {
+      const filesList = files.files || files.file || [];
+      console.log('📎 Uploading files to Cloudinary...');
+      for (const file of filesList) {
+        console.log(`Uploading file: ${file.filename}`);
+        const result: any = await sendFileToCloudinary(
+          file.filename,
+          file.path
+        );
+        console.log(`✅ File uploaded: ${result.secure_url}`);
+        filesArr.push(result.secure_url);
+      }
+    }
 
-  const deletedTask = await taskService.deleteTask(id);
+    // Create new task
+    const newTask: ITask = {
+      title: trimmedTitle,
+      category: trimmedCategory,
+      status: trimmedStatus,
+      endDate: parsedDate,
+      images,
+      videos,
+      files: filesArr,
+    };
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Task deleted successfully',
-    data: deletedTask,
-  });
-});
+    console.log('💾 Saving task to database:', newTask);
+
+    // Save the task to the database
+    const result = await taskService.createTask(newTask);
+
+    console.log('✅ Task created successfully:', result);
+
+    res.status(201).json({ success: true, task: result });
+  } catch (error: any) {
+    console.error('❌ Error creating task:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const taskController = {
   createTask,
-  getAllTasks,
-  getSingleTask,
-  updateTask,
-  deleteTask,
 };

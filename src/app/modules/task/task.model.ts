@@ -21,10 +21,13 @@ const TaskSchema = new Schema<ITask>(
       enum: ['All Task', 'Ongoing', 'Pending', 'Collaborative Task', 'Done'],
       required: true,
     },
-    endDate: { type: Date, required: true },
+  
+    // New fields
+    images: [{ type: String }], // optional array of image URLs
+    videos: [{ type: String }], // optional array of video URLs
+    files: [{ type: String }],  // optional array of file URLs
   },
-  { timestamps: true } // createdAt, updatedAt auto add হবে
+  { timestamps: true }
 );
 
-// Export the model
 export const TaskModel = mongoose.model<ITask>('TaskModel', TaskSchema);

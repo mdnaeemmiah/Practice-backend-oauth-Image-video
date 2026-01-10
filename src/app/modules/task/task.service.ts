@@ -1,6 +1,5 @@
 import { ITask } from './task.interface';
 import { TaskModel } from './task.model';
-import { Types } from 'mongoose';
 
 // Create a new task
 const createTask = async (data: ITask) => {
