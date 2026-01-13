@@ -4,10 +4,13 @@ import { DoctorValidation } from './doctor.validation';
 import validateRequest from '../../../middlewares/validateRequest';
 import auth from '../../../middlewares/globalErrorHandler';
 import { USER_ROLE } from '../user/user.constant';
-import { upload } from '../../../utils/sendImageToCloudinary';
+import { upload, uploadVideo } from '../../../utils/sendImageToCloudinary';
 import { NextFunction, Request, Response } from 'express';
 
 const doctorRouter = Router();
+
+// Public route for location-based search
+doctorRouter.get('/search-by-location', doctorController.searchByLocation);
 
 doctorRouter.get('/', doctorController.getAllDoctors);
 
@@ -16,8 +19,28 @@ doctorRouter.get(
   doctorController.getDoctorsBySpecialization
 );
 
-doctorRouter.get('/:id', doctorController.getSingleDoctor);
+// Doctor's own profile management routes (MUST be before /:id routes)
+doctorRouter.patch(
+  '/my-profile',
+  auth(USER_ROLE.doctor),
+  validateRequest(DoctorValidation.updateDoctorValidationSchema),
+  doctorController.updateMyProfile
+);
 
+doctorRouter.post(
+  '/my-intro-video',
+  auth(USER_ROLE.doctor),
+  uploadVideo.single('video'),
+  doctorController.uploadMyIntroVideo
+);
+
+doctorRouter.put(
+  '/my-availability',
+  auth(USER_ROLE.doctor),
+  doctorController.updateMyAvailability
+);
+
+// Admin routes for creating/updating doctors
 doctorRouter.post(
   '/create',
   auth(USER_ROLE.admin),
@@ -30,6 +53,34 @@ doctorRouter.post(
   },
   validateRequest(DoctorValidation.createDoctorValidationSchema),
   doctorController.createDoctor
+);
+
+doctorRouter.patch(
+  '/change-status/:id',
+  auth(USER_ROLE.admin),
+  validateRequest(DoctorValidation.changeStatusValidationSchema),
+  doctorController.changeStatus
+);
+
+// Generic routes with :id parameter (MUST be at the end)
+doctorRouter.get('/:id', doctorController.getSingleDoctor);
+
+doctorRouter.patch(
+  '/:doctorId/availability-slot/:slotId',
+  auth(USER_ROLE.admin),
+  doctorController.updateAvailabilitySlotStatus
+);
+
+doctorRouter.patch(
+  '/:doctorId/profile-update/approve',
+  auth(USER_ROLE.admin),
+  doctorController.approveProfileUpdate
+);
+
+doctorRouter.patch(
+  '/:doctorId/profile-update/reject',
+  auth(USER_ROLE.admin),
+  doctorController.rejectProfileUpdate
 );
 
 doctorRouter.patch(
@@ -50,13 +101,6 @@ doctorRouter.delete(
   '/:id',
   auth(USER_ROLE.admin),
   doctorController.deleteDoctor
-);
-
-doctorRouter.patch(
-  '/change-status/:id',
-  auth(USER_ROLE.admin),
-  validateRequest(DoctorValidation.changeStatusValidationSchema),
-  doctorController.changeStatus
 );
 
 export default doctorRouter;

@@ -41,12 +41,31 @@ const DoctorSchema = new Schema<IDoctor, DoctorModel>(
       enum: ['doctor'],
       default: 'doctor',
     },
-    phone: { type: String, default: 'N/A' },
-    address: { type: String, default: 'N/A' },
-    city: { type: String, default: 'N/A' },
+    phone: { type: String, default: '' },
+    address: { type: String, default: '' },
+    city: { type: String, default: '' },
+    zipCode: { type: String, default: '' },
+    chamberLocation: {
+      address: { type: String },
+      city: { type: String },
+      zipCode: { type: String },
+      coordinates: {
+        type: {
+          type: String,
+          enum: ['Point'],
+          default: 'Point',
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+          default: [0, 0],
+        },
+      },
+      googleMapsUrl: { type: String },
+    },
     specialization: {
       type: String,
       enum: Specializations,
+      default: 'General Medicine',
     },
     experience: {
       type: Number,
@@ -54,13 +73,85 @@ const DoctorSchema = new Schema<IDoctor, DoctorModel>(
     },
     qualification: {
       type: String,
-      default: 'N/A',
+      default: '',
     },
-    profileImg: { type: String },
+    profileImg: { type: String, default: '' },
+    introVideo: { type: String, default: '' },
+    bio: { type: String, default: '' },
+    languages: [{ type: String }],
+    insuranceAccepted: [{ type: String }],
+    vibeTags: [{ type: String }],
+    communicationStyle: {
+      type: String,
+      enum: ['warm-empathetic', 'direct-efficient', 'collaborative'],
+      default: 'warm-empathetic',
+    },
+    availability: [{
+      day: {
+        type: String,
+        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+      },
+      timeSlots: [{
+        startTime: String,
+        endTime: String,
+      }],
+      isAvailable: { type: Boolean, default: true },
+      specificDates: [{
+        date: Date,
+        timeSlots: [{
+          startTime: String,
+          endTime: String,
+        }],
+        isAvailable: { type: Boolean, default: true },
+      }],
+    }],
+    weeklyAvailability: {
+      type: Schema.Types.Mixed,
+      default: {
+        Monday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Tuesday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Wednesday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Thursday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Friday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Saturday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+        Sunday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
+      },
+    },
+    availabilitySlots: [{
+      id: { type: String },
+      date: { type: String },
+      dayOfWeek: { type: String },
+      startTime: { type: String },
+      endTime: { type: String },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+      },
+      adminNotes: { type: String },
+    }],
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    consultationFee: { type: Number, default: 0 },
+    acceptsNewPatients: { type: Boolean, default: true },
+    telehealth: { type: Boolean, default: false },
+    inPerson: { type: Boolean, default: true },
     status: {
       type: String,
       enum: DoctorStatus,
       default: 'active',
+    },
+    profileUpdateRequest: {
+      status: {
+        type: String,
+        enum: ['none', 'pending', 'approved', 'rejected'],
+        default: 'none',
+      },
+      requestedData: { type: Schema.Types.Mixed },
+      requestedAt: { type: Date },
+      reviewedAt: { type: Date },
+      reviewedBy: { type: String },
+      adminNotes: { type: String },
     },
     isBlocked: {
       type: Boolean,
@@ -84,13 +175,25 @@ const DoctorSchema = new Schema<IDoctor, DoctorModel>(
   }
 );
 
+// Create geospatial index for location-based queries
+DoctorSchema.index({ 'chamberLocation.coordinates': '2dsphere' });
+
 // Hash password before saving
 DoctorSchema.pre('save', async function () {
   const doctor = this;
-  doctor.password = await bcrypt.hash(
-    doctor.password,
-    Number(config.bcrypt_salt_rounds)
-  );
+  
+  // Only hash the password if it has been modified (or is new)
+  if (!doctor.isModified('password')) {
+    return;
+  }
+
+  // Check if password exists and is not empty
+  if (doctor.password) {
+    doctor.password = await bcrypt.hash(
+      doctor.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
 });
 
 // Remove password field from response

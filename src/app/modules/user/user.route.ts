@@ -16,6 +16,12 @@ userRouter.get(
   userController.getMe
 );
 
+userRouter.patch(
+  '/profile',
+  auth(USER_ROLE.user, USER_ROLE.doctor, USER_ROLE.admin),
+  userController.updateMyProfile
+);
+
 userRouter.get('/:userId', userController.getSingleUser);
 userRouter.patch(
   '/:id',

@@ -10,11 +10,13 @@ const register = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.register(req.file, req.body);
 
   sendResponse(res, {
-    statusCode: StatusCodes.ACCEPTED,
+    statusCode: StatusCodes.CREATED,
     success: true,
-    message:
-      'User Registered successfully. Please check your email for the verification code.',
-    data: result,
+    message: 'User registered successfully. Please check your email for the verification code.',
+    data: {
+      user: result,
+      message: 'A verification code has been sent to your email address.',
+    },
   });
 });
 
@@ -33,7 +35,7 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.login(req.body);
 
-  const { refreshToken, accessToken, needsPasswordChange } = result;
+  const { refreshToken, accessToken, needsPasswordChange, user } = result;
 
   res.cookie('refreshToken', refreshToken, {
     secure: config.NODE_ENV === 'production',
@@ -48,7 +50,14 @@ const login = catchAsync(async (req: Request, res: Response) => {
     message: 'User logged in successfully',
     data: {
       accessToken,
+      refreshToken,
       needsPasswordChange,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     },
   });
 });

@@ -24,6 +24,7 @@ export const googleCallback = catchAsync(
   }
 );
 
+
 // Apple OAuth Callback
 export const appleCallback = catchAsync(async (req: Request, res: Response) => {
   const user = await findOrCreateUser(req.user as any, 'apple');

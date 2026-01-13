@@ -169,9 +169,9 @@ const login = async (payload: TLoginUser) => {
 
   // create token and sent to the  client
   const jwtPayload = {
-    email: user.email, // Return email
-    name: user.name, // Return name
-    id: user._id.toString(), // Return the user ID (converted to string if it's a MongoDB ObjectId)
+    email: user.email,
+    name: user.name,
+    id: user._id.toString(),
     role: user.role,
   };
 
@@ -191,6 +191,12 @@ const login = async (payload: TLoginUser) => {
     accessToken,
     refreshToken,
     needsPasswordChange: user?.needsPasswordChange,
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   };
 };
 

@@ -36,7 +36,65 @@ const deleteUser = async (id: string) => {
 };
 
 const getMe = async (email: string) => {
-  const result = await User.findOne({ email });
+  // Try to find in User collection first
+  let result = await User.findOne({ email });
+  
+  // If not found, try Admin collection
+  if (!result) {
+    result = await Admin.findOne({ email });
+  }
+  
+  // If still not found, try Doctor collection
+  if (!result) {
+    result = await Doctor.findOne({ email });
+  }
+
+  return result;
+};
+
+const updateMyProfile = async (email: string, updateData: Partial<IUser>) => {
+  // Try to find and update in User collection first
+  let result = await User.findOneAndUpdate(
+    { email },
+    { 
+      name: updateData.name,
+      phone: updateData.phone,
+      address: updateData.address,
+      city: updateData.city,
+      zipCode: updateData.zipCode,
+    },
+    { new: true, runValidators: true }
+  );
+  
+  // If not found in User, try Admin
+  if (!result) {
+    result = await Admin.findOneAndUpdate(
+      { email },
+      { 
+        name: updateData.name,
+        phone: updateData.phone,
+        address: updateData.address,
+        city: updateData.city,
+        zipCode: updateData.zipCode,
+      },
+      { new: true, runValidators: true }
+    );
+  }
+  
+  // If still not found, try Doctor
+  if (!result) {
+    result = await Doctor.findOneAndUpdate(
+      { email },
+      { 
+        name: updateData.name,
+        phone: updateData.phone,
+        address: updateData.address,
+        city: updateData.city,
+        zipCode: updateData.zipCode,
+      },
+      { new: true, runValidators: true }
+    );
+  }
 
   return result;
 };
@@ -106,6 +164,7 @@ export const userService = {
   deleteUser,
   changeStatus,
   getMe,
+  updateMyProfile,
   createAdminIntoDB,
   createDoctorIntoDB,
 };

@@ -41,6 +41,38 @@ export const sendImageToCloudinary = (
   });
 };
 
+// Upload video to Cloudinary
+export const sendVideoToCloudinary = (
+  videoName: string,
+  videoPath: string
+): Promise<Record<string, any>> => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload(
+      videoPath,
+      {
+        resource_type: 'video',
+        public_id: videoName.replace(/\.[^/.]+$/, ''),
+        folder: 'doctor-videos',
+        chunk_size: 6000000, // 6MB chunks for large files
+      },
+      (error, result) => {
+        if (error) {
+          console.error('❌ Cloudinary video upload error:', error);
+          return reject(error);
+        }
+
+        console.log('✅ Video uploaded to Cloudinary:', result?.secure_url);
+        resolve(result!);
+
+        // Delete local file after successful upload
+        fs.unlink(videoPath, (err) => {
+          if (err) console.error('⚠️ Error deleting local video:', err);
+        });
+      }
+    );
+  });
+};
+
 // Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -60,7 +92,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter for images only
-const fileFilter = (
+const imageFileFilter = (
   req: Express.Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
@@ -79,8 +111,65 @@ const fileFilter = (
   }
 };
 
-// Multer upload configuration
-const multerUpload = multer({ storage, fileFilter });
+// File filter for videos
+const videoFileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  const allowedMimeTypes = [
+    'video/mp4',
+    'video/mpeg',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-ms-wmv',
+    'video/webm',
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only video files are allowed'));
+  }
+};
+
+// File filter for both images and videos
+const mediaFileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/jpg',
+    'video/mp4',
+    'video/mpeg',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-ms-wmv',
+    'video/webm',
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image and video files are allowed'));
+  }
+};
+
+// Multer upload configurations
+const multerUpload = multer({ storage, fileFilter: imageFileFilter });
+const multerVideoUpload = multer({ 
+  storage, 
+  fileFilter: videoFileFilter,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit for videos
+});
+const multerMediaUpload = multer({ 
+  storage, 
+  fileFilter: mediaFileFilter,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 // Export middleware functions
 export const upload = {
@@ -88,4 +177,13 @@ export const upload = {
   fields: (fields: any[]) => multerUpload.fields(fields),
   array: (fieldName: string, maxCount?: number) =>
     multerUpload.array(fieldName, maxCount),
+};
+
+export const uploadVideo = {
+  single: (fieldName: string) => multerVideoUpload.single(fieldName),
+};
+
+export const uploadMedia = {
+  single: (fieldName: string) => multerMediaUpload.single(fieldName),
+  fields: (fields: any[]) => multerMediaUpload.fields(fields),
 };

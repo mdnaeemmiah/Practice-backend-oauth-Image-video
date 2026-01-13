@@ -5,6 +5,9 @@ import userRouter from '../app/modules/user/user.route';
 import taskRoute from '../app/modules/task/task.route';
 import adminRouter from '../app/modules/admin/admin.route';
 import doctorRouter from '../app/modules/doctor/doctor.route';
+import patientRouter from '../app/modules/patient/patient.route';
+import messageRouter from '../app/modules/message/message.route';
+import appointmentRouter from '../app/modules/appointment/appointment.route';
 
 const router = Router();
 
@@ -32,6 +35,18 @@ const moduleRoutes = [
   {
     path: '/doctor',
     route: doctorRouter,
+  },
+  {
+    path: '/patient',
+    route: patientRouter,
+  },
+  {
+    path: '/message',
+    route: messageRouter,
+  },
+  {
+    path: '/appointment',
+    route: appointmentRouter,
   },
 ];
 

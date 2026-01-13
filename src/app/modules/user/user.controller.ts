@@ -105,6 +105,20 @@ const getMe = catchAsync(async (req, res) => {
   });
 });
 
+const updateMyProfile = catchAsync(async (req, res) => {
+  const { email } = req.user;
+  const updateData = req.body;
+
+  const result = await userService.updateMyProfile(email, updateData);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Profile updated successfully',
+    data: result,
+  });
+});
+
 const createDoctor = catchAsync(async (req, res) => {
   const { password, doctor: doctorData } = req.body;
 
@@ -148,4 +162,5 @@ export const userController = {
   createDoctor,
   createAdmin,
   getMe,
+  updateMyProfile,
 };
