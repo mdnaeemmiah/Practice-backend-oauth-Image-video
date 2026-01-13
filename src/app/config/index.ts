@@ -44,7 +44,7 @@ export default {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
       callbackUrl:
         process.env.GOOGLE_CALLBACK_URL ||
-        'http://localhost:5000/api/oauth/google/callback',
+        'https://practice-backend-oauth-image-video.vercel.app/api/oauth/google/callback',
     },
     apple: {
       clientId: process.env.APPLE_CLIENT_ID || '',
@@ -53,13 +53,13 @@ export default {
       privateKey: process.env.APPLE_PRIVATE_KEY || '',
       callbackUrl:
         process.env.APPLE_CALLBACK_URL ||
-        'http://localhost:5000/api/oauth/apple/callback',
+        'https://practice-backend-oauth-image-video.vercel.app/api/oauth/apple/callback',
     },
   },
 
   // Frontend redirect origin
   frontend: {
-    url: process.env.FRONTEND_URL || 'http://localhost:3000',
+    url: process.env.FRONTEND_URL || 'https://frontend-chi-indol-85.vercel.app',
   },
 
   // Email credentials and transport configuration
