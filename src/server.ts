@@ -22,7 +22,7 @@ async function main() {
       socketTimeoutMS: 30000,
       connectTimeoutMS: 30000,
 
-      maxPoolSize: 10,
+      maxPoolSize: 1,
       minPoolSize: 1,
 
       retryWrites: true,
