@@ -8,57 +8,27 @@ const port = config.port;
 
 async function main() {
   try {
-    // Log connection attempt
-    console.log('🔗 Attempting MongoDB connection...');
-    console.log('DB URL:', config.database_url?.replace(/:[^:]+@/, ':***@')); // Hide password
+    // Mongoose connection with serverless/Vercel optimized settings
+await mongoose.connect(config.database_url as string, {
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 30000,
+  connectTimeoutMS: 30000,
 
-    // Check if DB_URL exists
-    if (!config.database_url) {
-      throw new Error('❌ DB_URL is not defined in environment variables');
-    }
+  maxPoolSize: 10,
+  minPoolSize: 1,
 
-    // Mongoose connection with Vercel-optimized settings
-    await mongoose.connect(config.database_url as string, {
-      // Increased timeouts for serverless
-      serverSelectionTimeoutMS: 120000, // 2 minutes
-      socketTimeoutMS: 120000,
-      connectTimeoutMS: 120000,
+  retryWrites: true,
+});
 
-      // Connection pooling for serverless
-      maxPoolSize: 5,
-      minPoolSize: 1,
-
-      // Family 4 only (IPv4) - helps with some network issues
-      family: 4,
-
-      // Retry logic
-      retryWrites: true,
-      w: 'majority',
-
-      // App name for Atlas monitoring
-      appName: 'practice-backend',
-    });
-
-    console.log('✅ MongoDB connected successfully');
-    console.log('✅ Mongoose state:', mongoose.connection.readyState);
+    console.log('✅ Connected to MongoDB successfully');
 
     server = app.listen(port, () => {
-      console.log(`🚀 practice app listening on port ${port}`);
+      console.log(`practice app listening on port ${port}`);
     });
-
-    // Log when DB disconnects unexpectedly
-    mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️ MongoDB disconnected');
-    });
-
-    mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB runtime error:', err);
-    });
-
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err);
-    console.error('⚠️ Make sure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access');
-    process.exit(1);
+    // For Vercel: log but don't exit immediately - Vercel may retry
+    setTimeout(() => process.exit(1), 5000);
   }
 }
 
