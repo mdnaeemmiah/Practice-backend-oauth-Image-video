@@ -93,7 +93,7 @@ export const changeStatus = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMe = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user as any;
 
   const result = await userService.getMe(email);
 
@@ -106,7 +106,7 @@ const getMe = catchAsync(async (req, res) => {
 });
 
 const updateMyProfile = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user as any;
   const updateData = req.body;
 
   const result = await userService.updateMyProfile(email, updateData);

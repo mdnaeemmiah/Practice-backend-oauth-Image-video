@@ -53,7 +53,7 @@ const updateAppointmentStatus = catchAsync(async (req: Request, res: Response) =
 
 const getPatientAppointments = catchAsync(async (req: Request, res: Response) => {
   // req.user contains the full User document from auth middleware
-  const patientId = req.user._id.toString();
+  const patientId = (req.user as any)._id.toString();
   const result = await appointmentService.getPatientAppointments(patientId);
 
   sendResponse(res, {
@@ -66,7 +66,7 @@ const getPatientAppointments = catchAsync(async (req: Request, res: Response) =>
 
 const getDoctorAppointments = catchAsync(async (req: Request, res: Response) => {
   // req.user contains the full Doctor document from auth middleware
-  const doctorId = req.user._id.toString();
+  const doctorId = (req.user as any)._id.toString();
   const result = await appointmentService.getDoctorAppointments(doctorId);
 
   sendResponse(res, {

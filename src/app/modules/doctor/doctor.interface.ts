@@ -49,6 +49,23 @@ export interface IDoctor {
   vibeTags: string[]; // e.g., ['warm', 'lgbtq-affirming', 'bilingual']
   communicationStyle: 'warm-empathetic' | 'direct-efficient' | 'collaborative';
   availability: IDoctorAvailability[];
+  availabilitySlots?: Array<{
+    id?: string;
+    date?: string;
+    dayOfWeek?: string;
+    startTime?: string;
+    endTime?: string;
+    status?: 'pending' | 'approved' | 'rejected';
+    adminNotes?: string;
+  }>;
+  profileUpdateRequest?: {
+    status: 'none' | 'pending' | 'approved' | 'rejected';
+    requestedData?: any;
+    requestedAt?: Date;
+    reviewedAt?: Date;
+    reviewedBy?: string;
+    adminNotes?: string;
+  };
   rating?: number;
   reviewCount?: number;
   consultationFee?: number;

@@ -105,18 +105,6 @@ const DoctorSchema = new Schema<IDoctor, DoctorModel>(
         isAvailable: { type: Boolean, default: true },
       }],
     }],
-    weeklyAvailability: {
-      type: Schema.Types.Mixed,
-      default: {
-        Monday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Tuesday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Wednesday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Thursday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Friday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Saturday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-        Sunday: { available: false, startTime: '09:00 AM', endTime: '05:00 PM' },
-      },
-    },
     availabilitySlots: [{
       id: { type: String },
       date: { type: String },
@@ -180,7 +168,7 @@ DoctorSchema.index({ 'chamberLocation.coordinates': '2dsphere' });
 
 // Hash password before saving
 DoctorSchema.pre('save', async function () {
-  const doctor = this;
+  const doctor = this as any;
   
   // Only hash the password if it has been modified (or is new)
   if (!doctor.isModified('password')) {
@@ -197,7 +185,7 @@ DoctorSchema.pre('save', async function () {
 });
 
 // Remove password field from response
-DoctorSchema.post('save', function (doc) {
+DoctorSchema.post('save', function (doc: any) {
   doc.password = '';
 });
 

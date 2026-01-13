@@ -86,7 +86,7 @@ const getDoctorsBySpecialization = catchAsync(async (req, res) => {
 });
 
 const updateMyProfile = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user as any;
   const result = await doctorService.updateDoctorProfile(email, req.body);
 
   sendResponse(res, {
@@ -98,7 +98,7 @@ const updateMyProfile = catchAsync(async (req, res) => {
 });
 
 const uploadMyIntroVideo = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user as any;
   const result = await doctorService.uploadIntroVideo(email, req.file);
 
   sendResponse(res, {
@@ -110,7 +110,7 @@ const uploadMyIntroVideo = catchAsync(async (req, res) => {
 });
 
 const updateMyAvailability = catchAsync(async (req, res) => {
-  const { email } = req.user;
+  const { email } = req.user as any;
   const { availability, weeklyAvailability } = req.body;
   
   // Support both old availability format and new weeklyAvailability format
@@ -180,7 +180,7 @@ const updateAvailabilitySlotStatus = catchAsync(async (req, res) => {
 const approveProfileUpdate = catchAsync(async (req, res) => {
   const { doctorId } = req.params;
   const { adminNotes } = req.body;
-  const adminEmail = req.user.email;
+  const adminEmail = (req.user as any).email;
 
   const result = await doctorService.approveProfileUpdate(
     doctorId,
@@ -199,7 +199,7 @@ const approveProfileUpdate = catchAsync(async (req, res) => {
 const rejectProfileUpdate = catchAsync(async (req, res) => {
   const { doctorId } = req.params;
   const { adminNotes } = req.body;
-  const adminEmail = req.user.email;
+  const adminEmail = (req.user as any).email;
 
   if (!adminNotes) {
     throw new Error('Admin notes are required for rejection');

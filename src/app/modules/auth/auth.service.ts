@@ -37,9 +37,15 @@ const register = async (file: any, payload: IUser) => {
 
   // Create user in appropriate collection based on role
   if (payload.role === 'admin') {
-    user = await Admin.create(userData);
+    user = await Admin.create({
+      ...userData,
+      password: userData.password || '',
+    });
   } else if (payload.role === 'doctor') {
-    user = await Doctor.create(userData);
+    user = await Doctor.create({
+      ...userData,
+      password: userData.password || '',
+    });
   } else {
     user = await User.create(userData);
   }
@@ -160,7 +166,7 @@ const login = async (payload: TLoginUser) => {
   // checking if the password is correct
   const isPasswordMatched = await bcrypt.compare(
     payload?.password,
-    user?.password
+    user?.password || ''
   );
 
   if (!isPasswordMatched) {
@@ -221,7 +227,7 @@ const changePassword = async (
 
   //checking if the password is correct
 
-  if (!(await User.isPasswordMatched(payload.oldPassword, user?.password)))
+  if (!(await User.isPasswordMatched(payload.oldPassword, user?.password || '')))
     throw new AppError(StatusCodes.FORBIDDEN, 'Password do not matched');
 
   //hash new password

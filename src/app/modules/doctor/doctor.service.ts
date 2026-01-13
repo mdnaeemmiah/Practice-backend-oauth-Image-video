@@ -41,7 +41,7 @@ const updateDoctor = async (id: string, file: any, data: Partial<IDoctor>) => {
 
 const updateDoctorProfile = async (email: string, data: Partial<IDoctor>) => {
   // Instead of directly updating, create a profile update request
-  const doctor = await Doctor.findOne({ email });
+  const doctor: any = await Doctor.findOne({ email });
   
   if (!doctor) {
     throw new Error('Doctor not found');
@@ -215,7 +215,7 @@ const updateAvailabilitySlotStatus = async (
   status: string,
   adminNotes?: string
 ) => {
-  const doctor = await Doctor.findById(doctorId);
+  const doctor: any = await Doctor.findById(doctorId);
   if (!doctor) {
     throw new Error('Doctor not found');
   }
@@ -242,7 +242,7 @@ const approveProfileUpdate = async (
   adminEmail: string,
   adminNotes?: string
 ) => {
-  const doctor = await Doctor.findById(doctorId);
+  const doctor: any = await Doctor.findById(doctorId);
   if (!doctor) {
     throw new Error('Doctor not found');
   }
@@ -274,7 +274,7 @@ const rejectProfileUpdate = async (
   adminEmail: string,
   adminNotes: string
 ) => {
-  const doctor = await Doctor.findById(doctorId);
+  const doctor: any = await Doctor.findById(doctorId);
   if (!doctor) {
     throw new Error('Doctor not found');
   }

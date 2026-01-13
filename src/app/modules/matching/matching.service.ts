@@ -112,7 +112,7 @@ class MatchingService {
     return mapping[careType] || careType;
   }
 
-  private calculateMatchScore(doctor: any, preferences: IPatientPreferences, userLocation?: { latitude: number; longitude: number }): number {
+  private calculateMatchScore(doctor: any, preferences: any, userLocation?: { latitude: number; longitude: number }): number {
     let score = 0;
     const maxScore = 100;
 
@@ -165,7 +165,7 @@ class MatchingService {
     return Math.min(score, maxScore);
   }
 
-  private generateMatchReasons(doctor: any, preferences: IPatientPreferences): string[] {
+  private generateMatchReasons(doctor: any, preferences: any): string[] {
     const reasons: string[] = [];
 
     if (preferences.careType !== 'other') {
@@ -203,7 +203,7 @@ class MatchingService {
         preferences.vibePreferences.includes(vibe)
       ) || [];
       if (commonVibes.length > 0) {
-        reasons.push(`${commonVibes.map(v => v.replace('-', ' ')).join(', ')}`);
+        reasons.push(`${commonVibes.map((v: string) => v.replace('-', ' ')).join(', ')}`);
       }
     }
 
