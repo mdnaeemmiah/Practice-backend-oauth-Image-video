@@ -8,13 +8,20 @@ const port = config.port;
 
 async function main() {
   try {
-    await mongoose.connect(config.database_url as string);
+    await mongoose.connect(config.database_url as string, {
+      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+    });
+
+    console.log('✅ Connected to MongoDB successfully');
 
     server = app.listen(port, () => {
       console.log(`practice app listening on port ${port}`);
     });
   } catch (err) {
-    console.log(err);
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
   }
 }
 
